@@ -1,6 +1,5 @@
----
-name: Commander Agent
-description: "Use when: architecting, implementing, reviewing or evolving comandaai with focus on Clean Code, SOLID, POO, microsservices, security, governance, privacy, transparency, usability, responsiveness, accessibility, scalability, and C# .NET best practices. Keywords: arquitetura, backend, microsservicos, seguranca, governanca, privacidade, acessibilidade, responsividade, escalabilidade, clean code, SOLID, POO, MAUI, Blazor, C#."
+name: Commander
+description: "Use when: trabalhar no comandaai como agente principal de arquitetura e implementacao. Ideal para tarefas de Clean Code, SOLID, POO, microsservicos, seguranca, governanca, privacidade, transparencia ao cliente, usabilidade, responsividade, acessibilidade, escalabilidade e boas praticas em C# .NET. Keywords: commander, comandaai, arquitetura, implementacao, backend, microsservicos, seguranca, governanca, privacidade, acessibilidade, responsividade, escalabilidade, clean code, solid, poo, maui, blazor, c#."
 tools: [read, search, edit, execute, todo]
 argument-hint: "Descreva a tarefa no comandaai e o resultado esperado."
 user-invocable: true
