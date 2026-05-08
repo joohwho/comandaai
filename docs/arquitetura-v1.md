@@ -79,6 +79,7 @@ O app cliente da V1 segue estes limites internos:
 - `Components`: UI em Razor Components e layouts
 - `Application`: contratos de servico e orquestracao do app
 - `Domain`: entidades e regras centrais do negocio
+- `Persistencia local`: estado temporario do cliente no navegador para carrinho e continuidade do fluxo
 - `wwwroot`: ativos visuais, manifesto PWA e service worker
 
 ## Modelagem inicial do dominio
@@ -104,12 +105,13 @@ O app cliente da V1 segue estes limites internos:
 1. Cliente acessa o app PWA pelo QR code do estabelecimento.
 2. App valida contexto operacional permitido.
 3. Cliente informa nome ou apelido.
-4. Cliente monta o pedido no cardapio.
-5. Pedido e enviado ao backend local/hibrido.
-6. Backend gera numero e status inicial.
-7. Painel interno recebe o pedido em tempo real.
-8. Operacao atualiza status.
-9. Painel publico e cliente refletem a evolucao do pedido.
+4. Cliente monta o pedido no cardapio, com observacoes, adicionais e carrinho local persistido no navegador.
+5. App monta o aggregate de pedido pela camada `Application` antes do envio real.
+6. Pedido e enviado ao backend local/hibrido.
+7. Backend gera numero e status inicial.
+8. Painel interno recebe o pedido em tempo real.
+9. Operacao atualiza status.
+10. Painel publico e cliente refletem a evolucao do pedido.
 
 ## Seguranca e privacidade
 
@@ -143,4 +145,5 @@ Essa separacao deve acontecer por contratos e limites claros, nao por distribuic
 - versao de trabalho inicial definida como `0.0.1`
 - validacao local ainda pode continuar sem build e sem testes obrigatorios
 - pipelines configuradas para build em push e PR, round final automatizada e prerelease apos merge em `development`
-- primeiro projeto de testes criado em `tests/ComandaAi.Web.Tests` com foco inicial no dominio
+- primeiro projeto de testes criado em `tests/ComandaAi.Web.Tests` com foco em dominio e camada `Application`
+- round 2 consolidou carrinho customizavel com persistencia local no navegador e preview de pedido montado pela camada `Application`

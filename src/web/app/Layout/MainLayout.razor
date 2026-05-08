@@ -1,4 +1,7 @@
 ﻿@inherits LayoutComponentBase
+@inject ICarrinhoPedidoService CarrinhoPedidoService
+@inject ICarrinhoPersistenciaLocalService CarrinhoPersistenciaLocalService
+@implements IDisposable
 
 <div class="app-shell">
     <div class="app-frame">
@@ -12,7 +15,10 @@
                     <div class="eyebrow">PWA mobile-first</div>
                     <strong>Comanda digital local para bares e restaurantes</strong>
                 </div>
-                <span class="version-pill">0.0.1</span>
+                <div class="topbar-meta">
+                    <span class="cart-pill">Carrinho @CarrinhoPedidoService.QuantidadeTotalItens</span>
+                    <span class="version-pill">0.0.1</span>
+                </div>
             </header>
 
             <article class="app-content">
@@ -21,3 +27,51 @@
         </main>
     </div>
 </div>
+
+@code {
+    private bool carrinhoCarregado;
+    private bool restaurandoCarrinho;
+
+	protected override void OnInitialized()
+	{
+		CarrinhoPedidoService.Changed += OnCarrinhoChanged;
+	}
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        restaurandoCarrinho = true;
+        var itensSalvos = await CarrinhoPersistenciaLocalService.CarregarAsync();
+
+        if (itensSalvos.Count > 0)
+        {
+            CarrinhoPedidoService.SubstituirItens(itensSalvos);
+        }
+
+        restaurandoCarrinho = false;
+        carrinhoCarregado = true;
+        StateHasChanged();
+    }
+
+	private void OnCarrinhoChanged()
+	{
+        _ = InvokeAsync(async () =>
+        {
+            if (carrinhoCarregado && !restaurandoCarrinho)
+            {
+                await CarrinhoPersistenciaLocalService.SalvarAsync(CarrinhoPedidoService.Itens);
+            }
+
+            StateHasChanged();
+        });
+	}
+
+	public void Dispose()
+	{
+		CarrinhoPedidoService.Changed -= OnCarrinhoChanged;
+	}
+}

@@ -1,6 +1,7 @@
 @page "/catalogo"
 @using System.Globalization
 @inject ICatalogoConsultaService CatalogoService
+@inject ICarrinhoPedidoService CarrinhoPedidoService
 
 <PageTitle>comandaai | Catalogo</PageTitle>
 
@@ -9,7 +10,11 @@
 		<div>
 			<div class="eyebrow">Catalogo</div>
 			<h1>Estrutura inicial do cardapio</h1>
-			<p class="muted-text">Categorias, produtos e adicionais modelados no dominio para evolucao da V1.</p>
+			<p class="muted-text">Categorias, produtos e adicionais modelados no dominio, agora com adicao direta ao carrinho local.</p>
+		</div>
+		<div class="header-actions">
+			<span class="cart-pill">@CarrinhoPedidoService.QuantidadeTotalItens item(ns)</span>
+			<a class="action-link" href="pedidos">Abrir pedido</a>
 		</div>
 	</section>
 
@@ -52,12 +57,34 @@
 									}
 								</div>
 
+								<div class="product-card__actions">
+									<button class="action-button" @onclick="() => AdicionarAoCarrinho(produto)">Adicionar ao carrinho</button>
+									<span class="muted-text">Cada personalizacao entra como um item proprio no carrinho.</span>
+								</div>
+
+								<div class="product-config-grid">
+									<label>
+										<span>Observacao</span>
+										<textarea class="field-input field-input--textarea" value="@ObterSelecao(produto.Id).Observacao" @onchange="evento => AtualizarObservacao(produto.Id, evento.Value?.ToString())"></textarea>
+									</label>
+								</div>
+
 								@if (produto.Adicionais.Count > 0)
 								{
-									<div class="chip-row">
+									<div class="product-config-grid">
 										@foreach (var adicional in produto.Adicionais)
 										{
-											<span class="chip">@adicional.Nome · @FormatMoney(adicional.Preco)</span>
+											<label class="add-on-editor">
+												<span>@adicional.Nome · @FormatMoney(adicional.Preco)</span>
+												<input
+													class="field-input"
+													type="number"
+													min="0"
+													max="@adicional.QuantidadeMaximaPorItem"
+													value="@ObterQuantidadeAdicional(produto.Id, adicional.Id)"
+													@onchange="evento => AtualizarQuantidadeAdicional(produto.Id, adicional, evento.Value?.ToString())" />
+												<small class="muted-text">Maximo por item: @adicional.QuantidadeMaximaPorItem</small>
+											</label>
 										}
 									</div>
 								}
@@ -73,12 +100,79 @@
 @code {
 	private static readonly CultureInfo Culture = CultureInfo.GetCultureInfo("pt-BR");
 	private IReadOnlyList<CategoriaCardapio> categorias = [];
+	private readonly Dictionary<Guid, ProdutoSelecaoState> selecoesPorProduto = [];
 	private bool isLoading = true;
 
 	protected override async Task OnInitializedAsync()
 	{
 		categorias = await CatalogoService.ListarCategoriasAsync();
 		isLoading = false;
+	}
+
+	private void AdicionarAoCarrinho(ProdutoCardapio produto)
+	{
+		var selecao = ObterSelecao(produto.Id);
+		var adicionaisSelecionados = produto.Adicionais
+			.Where(adicional => ObterQuantidadeAdicional(produto.Id, adicional.Id) > 0)
+			.Select(adicional => new CarrinhoAdicionalState(
+				adicional.Id,
+				adicional.Nome,
+				adicional.Preco,
+				ObterQuantidadeAdicional(produto.Id, adicional.Id)))
+			.ToList();
+
+		CarrinhoPedidoService.AdicionarItem(new CarrinhoItemEntrada(
+			produto.Id,
+			produto.Nome,
+			produto.PrecoBase,
+			selecao.Observacao,
+			adicionaisSelecionados));
+
+		selecao.Observacao = string.Empty;
+		selecao.QuantidadesAdicionais.Clear();
+	}
+
+	private ProdutoSelecaoState ObterSelecao(Guid produtoId)
+	{
+		if (!selecoesPorProduto.TryGetValue(produtoId, out var selecao))
+		{
+			selecao = new ProdutoSelecaoState();
+			selecoesPorProduto[produtoId] = selecao;
+		}
+
+		return selecao;
+	}
+
+	private void AtualizarObservacao(Guid produtoId, string? observacao)
+	{
+		ObterSelecao(produtoId).Observacao = observacao ?? string.Empty;
+	}
+
+	private int ObterQuantidadeAdicional(Guid produtoId, Guid adicionalId)
+	{
+		return ObterSelecao(produtoId).QuantidadesAdicionais.GetValueOrDefault(adicionalId);
+	}
+
+	private void AtualizarQuantidadeAdicional(Guid produtoId, AdicionalCardapio adicional, string? valor)
+	{
+		var selecao = ObterSelecao(produtoId);
+		var quantidade = int.TryParse(valor, out var quantidadeInformada) ? quantidadeInformada : 0;
+		quantidade = Math.Clamp(quantidade, 0, adicional.QuantidadeMaximaPorItem);
+
+		if (quantidade == 0)
+		{
+			selecao.QuantidadesAdicionais.Remove(adicional.Id);
+			return;
+		}
+
+		selecao.QuantidadesAdicionais[adicional.Id] = quantidade;
+	}
+
+	private sealed class ProdutoSelecaoState
+	{
+		public string Observacao { get; set; } = string.Empty;
+
+		public Dictionary<Guid, int> QuantidadesAdicionais { get; } = [];
 	}
 
 	private static string FormatMoney(decimal value) => value.ToString("C", Culture);
