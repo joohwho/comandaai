@@ -136,8 +136,8 @@ Essa separacao deve acontecer por contratos e limites claros, nao por distribuic
 - cada round deve nascer em uma branch nova
 - `main` e `development` ficam protegidas contra commit direto e aceitam mudancas apenas por pull request
 - todo push e toda abertura de pull request disparam a pipeline `Build`
-- o termo `final branch commit` fecha uma round branch e dispara build, teste quando houver projeto de teste, criacao automatica de pull request para `development` e auto-merge
-- cada merge em `development` gera uma prerelease sequencial no formato `0.0.1`, `0.0.2`, `0.0.3` e assim por diante
+- o termo `final branch commit` fecha uma round branch e dispara build, teste quando houver projeto de teste, criacao automatica de pull request para `development`, auto-merge, confirmacao de merge e publicacao da prerelease sequencial
+- a prerelease automatica deve ser publicada com titulo enxuto no formato `Prerelease 0.0.x`
 
 ## Estado atual do repositorio
 
@@ -145,5 +145,6 @@ Essa separacao deve acontecer por contratos e limites claros, nao por distribuic
 - versao de trabalho inicial definida como `0.0.1`
 - validacao local ainda pode continuar sem build e sem testes obrigatorios
 - pipelines configuradas para build em push e PR, round final automatizada e prerelease apos merge em `development`
+- a publicacao de prerelease foi acoplada ao fechamento automatizado do round para evitar lacuna causada pelo merge executado por workflow
 - primeiro projeto de testes criado em `tests/ComandaAi.Web.Tests` com foco em dominio e camada `Application`
 - round 2 consolidou carrinho customizavel com persistencia local no navegador e preview de pedido montado pela camada `Application`
