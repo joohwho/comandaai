@@ -1,0 +1,85 @@
+@page "/catalogo"
+@using System.Globalization
+@inject ICatalogoConsultaService CatalogoService
+
+<PageTitle>comandaai | Catalogo</PageTitle>
+
+<div class="page-stack">
+	<section class="page-header-card">
+		<div>
+			<div class="eyebrow">Catalogo</div>
+			<h1>Estrutura inicial do cardapio</h1>
+			<p class="muted-text">Categorias, produtos e adicionais modelados no dominio para evolucao da V1.</p>
+		</div>
+	</section>
+
+	@if (isLoading)
+	{
+		<section class="section-card">
+			<p class="muted-text">Carregando categorias...</p>
+		</section>
+	}
+	else
+	{
+		<div class="catalog-grid">
+			@foreach (var categoria in categorias)
+			{
+				<article class="category-card">
+					<div class="category-card__head">
+						<div>
+							<h2>@categoria.Nome</h2>
+							<span>@categoria.Produtos.Count produto(s)</span>
+						</div>
+						<strong>#@categoria.OrdemExibicao</strong>
+					</div>
+
+					<div class="product-list">
+						@foreach (var produto in categoria.Produtos)
+						{
+							<article class="product-card">
+								<div class="product-card__top">
+									<div>
+										<h3>@produto.Nome</h3>
+										<p>@produto.Descricao</p>
+									</div>
+									<strong>@FormatMoney(produto.PrecoBase)</strong>
+								</div>
+								<div class="tag-row">
+									<span class="tag">@produto.Tipo</span>
+									@if (produto.Ativo)
+									{
+										<span class="tag">Ativo</span>
+									}
+								</div>
+
+								@if (produto.Adicionais.Count > 0)
+								{
+									<div class="chip-row">
+										@foreach (var adicional in produto.Adicionais)
+										{
+											<span class="chip">@adicional.Nome · @FormatMoney(adicional.Preco)</span>
+										}
+									</div>
+								}
+							</article>
+						}
+					</div>
+				</article>
+			}
+		</div>
+	}
+</div>
+
+@code {
+	private static readonly CultureInfo Culture = CultureInfo.GetCultureInfo("pt-BR");
+	private IReadOnlyList<CategoriaCardapio> categorias = [];
+	private bool isLoading = true;
+
+	protected override async Task OnInitializedAsync()
+	{
+		categorias = await CatalogoService.ListarCategoriasAsync();
+		isLoading = false;
+	}
+
+	private static string FormatMoney(decimal value) => value.ToString("C", Culture);
+}

@@ -1,0 +1,23 @@
+﻿@inherits LayoutComponentBase
+
+<div class="app-shell">
+    <div class="app-frame">
+        <aside class="app-sidebar">
+            <NavMenu />
+        </aside>
+
+        <main class="app-main">
+            <header class="app-topbar">
+                <div>
+                    <div class="eyebrow">PWA mobile-first</div>
+                    <strong>Comanda digital local para bares e restaurantes</strong>
+                </div>
+                <span class="version-pill">0.0.1</span>
+            </header>
+
+            <article class="app-content">
+                @Body
+            </article>
+        </main>
+    </div>
+</div>

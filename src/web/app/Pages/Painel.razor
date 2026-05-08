@@ -1,0 +1,58 @@
+@page "/painel"
+
+<PageTitle>comandaai | Painel</PageTitle>
+
+<div class="page-stack">
+	<section class="page-header-card">
+		<div>
+			<div class="eyebrow">Painel operacional</div>
+			<h1>Fila visual da V1</h1>
+			<p class="muted-text">Esse recorte antecipa como a operacao deve enxergar pedidos por etapa, sem ainda depender de backend real.</p>
+		</div>
+	</section>
+
+	<div class="panel-lane-grid">
+		@foreach (var lane in lanes)
+		{
+			<section class="panel-lane">
+				<div class="panel-lane__head">
+					<h2>@lane.Titulo</h2>
+					<span>@lane.Pedidos.Count pedido(s)</span>
+				</div>
+
+				<div class="panel-lane__cards">
+					@foreach (var pedido in lane.Pedidos)
+					{
+						<article class="lane-card">
+							<strong>@pedido.Numero</strong>
+							<span>@pedido.Cliente</span>
+							<small>@pedido.Referencia</small>
+						</article>
+					}
+				</div>
+			</section>
+		}
+	</div>
+
+	<section class="section-card">
+		<h2>Leituras da arquitetura</h2>
+		<ul class="bullet-list">
+			<li>O painel interno precisa de atualizacao em tempo real e toque rapido.</li>
+			<li>O painel publico deve destacar prontos sem carregar informacao operacional demais.</li>
+			<li>Essa camada deve evoluir sem empurrar regra de fila para dentro do app cliente.</li>
+		</ul>
+	</section>
+</div>
+
+@code {
+	private readonly IReadOnlyList<PainelLane> lanes =
+	[
+		new PainelLane("Recebidos", [new PainelPedidoCard("A-118", "Bruno", "Mesa 04"), new PainelPedidoCard("A-119", "Mila", "Balcao")]),
+		new PainelLane("Em preparo", [new PainelPedidoCard("A-102", "Ana", "Mesa 08"), new PainelPedidoCard("A-117", "Caio", "Comanda C-22")]),
+		new PainelLane("Prontos", [new PainelPedidoCard("A-099", "Leo", "Retirada")])
+	];
+
+	private sealed record PainelLane(string Titulo, IReadOnlyList<PainelPedidoCard> Pedidos);
+
+	private sealed record PainelPedidoCard(string Numero, string Cliente, string Referencia);
+}

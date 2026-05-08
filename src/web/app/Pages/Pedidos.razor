@@ -1,0 +1,120 @@
+@page "/pedidos"
+@using System.Globalization
+
+<PageTitle>comandaai | Pedidos</PageTitle>
+
+<div class="page-stack">
+	<section class="page-header-card">
+		<div>
+			<div class="eyebrow">Pedidos</div>
+			<h1>Aggregate inicial do fluxo de pedido</h1>
+			<p class="muted-text">O dominio ja controla itens, total e transicoes de status do pedido.</p>
+		</div>
+	</section>
+
+	<section class="section-card">
+		<div class="order-summary-head">
+			<div>
+				<h2>Pedido @pedido.NumeroExibicao</h2>
+				<p class="muted-text">Cliente: @pedido.Cliente.NomeExibicao</p>
+			</div>
+			<span class="status-chip status-chip--info">@pedido.Status</span>
+		</div>
+
+		<div class="stats-grid">
+			<article class="stat-card">
+				<span>Mesa</span>
+				<strong>@pedido.ReferenciaAtendimento.Mesa</strong>
+			</article>
+			<article class="stat-card">
+				<span>Comanda</span>
+				<strong>@pedido.ReferenciaAtendimento.Comanda</strong>
+			</article>
+			<article class="stat-card">
+				<span>Itens</span>
+				<strong>@pedido.Itens.Count</strong>
+			</article>
+			<article class="stat-card">
+				<span>Total</span>
+				<strong>@FormatMoney(pedido.Total)</strong>
+			</article>
+		</div>
+	</section>
+
+	<section class="section-card">
+		<h2>Itens do pedido</h2>
+		<div class="product-list">
+			@foreach (var item in pedido.Itens)
+			{
+				<article class="product-card">
+					<div class="product-card__top">
+						<div>
+							<h3>@item.NomeProduto</h3>
+							<p>@(item.Observacao ?? "Sem observacoes.")</p>
+						</div>
+						<strong>@FormatMoney(item.Total)</strong>
+					</div>
+					<div class="tag-row">
+						<span class="tag">Qtd. @item.Quantidade</span>
+						<span class="tag">Base @FormatMoney(item.PrecoUnitario)</span>
+					</div>
+
+					@if (item.Adicionais.Count > 0)
+					{
+						<div class="chip-row">
+							@foreach (var adicional in item.Adicionais)
+							{
+								<span class="chip">@adicional.Nome x@adicional.Quantidade</span>
+							}
+						</div>
+					}
+				</article>
+			}
+		</div>
+	</section>
+
+	<section class="section-card">
+		<h2>Transicoes permitidas na V1</h2>
+		<ul class="bullet-list">
+			<li>Recebido → EmPreparo ou Cancelado.</li>
+			<li>EmPreparo → Pronto ou Cancelado.</li>
+			<li>Pronto → Entregue.</li>
+			<li>Pedidos encerrados nao aceitam nova alteracao de itens.</li>
+		</ul>
+	</section>
+</div>
+
+@code {
+	private static readonly CultureInfo Culture = CultureInfo.GetCultureInfo("pt-BR");
+	private Pedido pedido = default!;
+
+	protected override void OnInitialized()
+	{
+		pedido = new Pedido(
+			"A-102",
+			new IdentificacaoCliente("Ana - Mesa 08"),
+			new ReferenciaAtendimento("08", "C-14", "mesa-08"));
+
+		pedido.AdicionarItem(new ItemPedido(
+			Guid.Parse("6B9F377E-BE67-4A41-A4A7-6E51D6882011"),
+			"Negroni da Casa",
+			34.90m,
+			1,
+			"Pouco gelo",
+			[
+				new ItemPedidoAdicional(Guid.Parse("6B9F377E-BE67-4A41-A4A7-6E51D6882021"), "Dose extra de gin", 8.00m, 1)
+			]));
+
+		pedido.AdicionarItem(new ItemPedido(
+			Guid.Parse("6B9F377E-BE67-4A41-A4A7-6E51D6882012"),
+			"Batata rustica",
+			24.90m,
+			1,
+			null,
+			[]));
+
+		pedido.AtualizarStatus(PedidoStatus.EmPreparo);
+	}
+
+	private static string FormatMoney(decimal value) => value.ToString("C", Culture);
+}

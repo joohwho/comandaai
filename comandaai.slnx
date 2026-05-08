@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/" />
+  <Folder Name="/src/web/" />
+  <Folder Name="/src/web/app/">
+    <Project Path="src/web/app/ComandaAi.Web.csproj" />
+  </Folder>
+</Solution>

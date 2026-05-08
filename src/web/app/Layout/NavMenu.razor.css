@@ -1,0 +1,61 @@
+.nav-shell {
+	display: grid;
+	gap: 1rem;
+}
+
+.brand-card,
+.nav-note {
+	padding: 1.1rem;
+	border-radius: 1.35rem;
+	background: linear-gradient(180deg, rgba(34, 21, 15, 0.95) 0%, rgba(18, 10, 7, 0.94) 100%);
+	border: 1px solid rgba(255, 236, 210, 0.08);
+	box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.18);
+}
+
+.brand-card h1 {
+	margin: 0.15rem 0 0.45rem;
+	font-size: 1.55rem;
+}
+
+.brand-card p,
+.nav-note span {
+	color: rgba(255, 239, 221, 0.74);
+	line-height: 1.5;
+}
+
+.nav-links {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.75rem;
+}
+
+.nav-links ::deep .nav-link {
+	display: inline-flex;
+	justify-content: center;
+	align-items: center;
+	padding: 0.85rem 1rem;
+	border-radius: 1rem;
+	border: 1px solid rgba(255, 236, 210, 0.1);
+	background: rgba(255, 248, 240, 0.04);
+	color: #fff6ea;
+	text-decoration: none;
+	font-weight: 700;
+	text-align: center;
+}
+
+.nav-links ::deep .nav-link.active {
+	background: linear-gradient(180deg, rgba(210, 106, 54, 0.32) 0%, rgba(128, 47, 13, 0.5) 100%);
+	border-color: rgba(255, 174, 93, 0.26);
+	color: #fff2df;
+}
+
+.nav-note {
+	display: grid;
+	gap: 0.4rem;
+}
+
+@media (min-width: 900px) {
+	.nav-links {
+		grid-template-columns: 1fr;
+	}
+}

@@ -6,11 +6,11 @@ O `comandaai` e um app de comanda digital para bares e restaurantes.
 
 Direcao atual do produto:
 
-- Android-first
+- PWA mobile-first
 - .NET 10
-- .NET MAUI Blazor Hybrid
+- Blazor WebAssembly com PWA
 - Blazor com Razor Components
-- distribuicao inicial por APK e QR code
+- acesso inicial por QR code e browser
 - operacao conectada ao ambiente local do estabelecimento
 - painel interno e painel publico como partes do mesmo ecossistema
 
@@ -25,10 +25,10 @@ Direcao atual do produto:
 ## Arquitetura
 
 - Reaproveitar o padrao estrutural dos projetos `qa-test-pilot` e `inovar-colors-orcamento` quando ele fizer sentido para o novo dominio.
-- Separar claramente camadas de UI, aplicacao, dominio, persistencia local e integracoes.
+- Separar claramente camadas de UI, aplicacao, dominio, persistencia local no browser e integracoes.
 - Tratar backend, realtime, fila operacional e paineis como limites arquiteturais explicitos.
 - Preparar o dominio para evolucao futura em direcao a servicos desacoplados, sem forcar microsservicos cedo demais.
-- Nao misturar decisao de distribuicao Android-first com restricoes do backend ou do painel.
+- Nao misturar decisao de PWA mobile-first com restricoes do backend ou do painel.
 
 ## C# .NET
 
@@ -36,6 +36,7 @@ Direcao atual do produto:
 - Preferir tipos pequenos, records e services quando combinarem com o problema.
 - Evitar classes deus, metodos longos e estados implicitos dificeis de validar.
 - Modelar o dominio com foco em categorias, produtos, adicionais, pedidos, itens, status, mesa/comanda e operadores internos.
+- Em componentes Razor, manter paginas pequenas e empurrar regra para services e dominio.
 
 ## Seguranca e privacidade
 
@@ -55,7 +56,7 @@ Direcao atual do produto:
 ## UX, responsividade e acessibilidade
 
 - Priorizar fluxos rapidos e claros para ambiente de bar.
-- Garantir boa experiencia em celular no app cliente e leitura eficiente nos paineis.
+- Garantir boa experiencia em celular no app cliente PWA e leitura eficiente nos paineis.
 - Considerar contraste, tamanho de toque, foco, semantica e feedback visual como requisitos reais.
 - Evitar interfaces que dependam de precisao excessiva, excesso de texto ou ambiguidades de estado.
 
@@ -63,5 +64,6 @@ Direcao atual do produto:
 
 - Preferir mudancas pequenas e validaveis.
 - Antes de adicionar bibliotecas, confirmar que a plataforma base nao resolve o problema de forma mais simples.
-- Sempre que possivel, validar por teste, build, checagem local ou criterio executavel equivalente.
+- Enquanto os pipelines ainda nao estiverem configurados, nao exigir build nem testes locais por padrao.
+- Nesse periodo inicial, validar por consistencia estrutural, coerencia arquitetural, leitura de codigo e criterios objetivos que nao dependam de execucao local.
 - Nao introduzir backend framework, banco definitivo, autenticacao ou pagamento sem decisao explicita.

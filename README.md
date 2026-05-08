@@ -20,24 +20,32 @@ Ao mesmo tempo, a equipe interna tera um painel operacional para:
 
 ## Stack de referencia
 
-Com base nos repositorios `qa-test-pilot` e `inovar-colors-orcamento`, a stack base de referencia para o `comandaai` passa a ser:
+Com base nos repositorios `qa-test-pilot` e `inovar-colors-orcamento`, o `comandaai` reaproveita principalmente o ecossistema .NET e a organizacao em Razor Components, mas agora com uma frente web PWA:
 
 - .NET 10
-- .NET MAUI Blazor Hybrid
+- Blazor WebAssembly com suporte a PWA
 - Blazor com Razor Components para a interface
 - arquitetura orientada a servicos com DI
-- persistencia local para dados do dispositivo quando fizer sentido
+- persistencia local no navegador quando fizer sentido
 - xUnit para testes automatizados
-- GitHub Actions para CI e empacotamento Android
+- GitHub Actions para CI e publicacao futura
+
+## Baseline atual do repositorio
+
+- versao de trabalho inicial: `0.0.1`
+- scaffold web PWA inicial em `src/web/app`
+- solucao principal em `comandaai.slnx`
+- agente customizado do projeto em `.github/agents/Commander.agent.md`
+- documentacao de arquitetura da V1 em `docs/arquitetura-v1.md`
 
 ## Direcao tecnica inicial
 
 Partindo da stack de referencia, o projeto nasce com estas decisoes iniciais:
 
-- app cliente Android-first em .NET MAUI Blazor Hybrid
-- distribuicao inicial por APK e QR code, fora da Play Store
-- interface mobile otimizada para uso no salao
-- painel interno e painel publico como modulos do produto a definir entre web dedicada, painel local ou app complementar
+- app cliente em formato PWA, compativel com Android e iPhone via browser
+- acesso por QR code sem depender de Play Store ou App Store
+- interface mobile-first otimizada para uso no salao
+- painel interno e painel publico como modulos web do mesmo ecossistema
 - backend/API local ou hibrida como nova camada arquitetural do produto
 - acesso funcional restrito a infraestrutura local do estabelecimento, sem depender apenas de SSID
 
@@ -46,7 +54,7 @@ Partindo da stack de referencia, o projeto nasce com estas decisoes iniciais:
 - organizacao da UI em componentes Razor
 - padrao de `Services` para regras de negocio e fluxos
 - uso consistente de injecao de dependencia
-- abordagem Android-first para distribuicao direta por APK
+- modelagem em C# .NET com foco em contratos claros
 - padrao de testes unitarios para regras e servicos desacoplados da plataforma
 
 ## O que nao existe ainda nos projetos anteriores
@@ -76,7 +84,7 @@ Esses pontos devem ser tratados como arquitetura nova do `comandaai`, mesmo com 
 ### Cliente
 
 1. Escaneia o QR code.
-2. Instala ou abre o app Android distribuido pelo estabelecimento.
+2. Abre o app PWA no navegador do celular.
 3. Informa nome ou apelido.
 4. Escolhe itens do cardapio.
 5. Envia o pedido.
@@ -114,7 +122,7 @@ Esses pontos devem ser tratados como arquitetura nova do `comandaai`, mesmo com 
 - composicao do painel interno e do painel publico
 - login interno da equipe
 - estrategia de cadastro e edicao do cardapio
-- estrategia para iPhone, caso o produto precise ir alem do Android-first
+- estrategia de cache offline parcial no PWA
 
 ## Proximos passos recomendados
 
@@ -122,4 +130,4 @@ Esses pontos devem ser tratados como arquitetura nova do `comandaai`, mesmo com 
 2. Estruturar modulos iniciais do app cliente e dos paineis.
 3. Modelar entidades principais: categoria, produto, adicional, pedido, item do pedido, status e mesa/comanda.
 4. Decidir como o painel interno sera entregue na V1.
-5. Iniciar o scaffold tecnico do projeto em .NET MAUI Blazor Hybrid.
+5. Evoluir o scaffold tecnico do projeto em Blazor WebAssembly com PWA.

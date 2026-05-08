@@ -1,0 +1,127 @@
+﻿@page "/"
+@using System.Globalization
+@inject ICatalogoConsultaService CatalogoService
+
+<PageTitle>comandaai | Visao geral</PageTitle>
+
+@if (isLoading)
+{
+	<section class="section-card page-stack">
+		<h1>Carregando baseline da V1...</h1>
+		<p class="muted-text">Preparando a visao inicial do catalogo e da arquitetura PWA.</p>
+	</section>
+}
+else
+{
+	<div class="page-stack">
+		<section class="hero-card">
+			<div class="eyebrow">Prerelease 0.0.1</div>
+			<h1>Base tecnica da V1 do comandaai</h1>
+			<p>
+				O repositorio ja nasce com foco em PWA mobile-first, dominio inicial de catalogo e pedidos, e separacao clara entre app cliente,
+				backend operacional e paineis.
+			</p>
+			<div class="tag-row">
+				<span class="tag">Blazor WebAssembly PWA</span>
+				<span class="tag">Dominio inicial modelado</span>
+				<span class="tag">Sem build local por enquanto</span>
+			</div>
+		</section>
+
+		<section class="stats-grid">
+			<article class="stat-card">
+				<span>Categorias</span>
+				<strong>@categorias.Count</strong>
+			</article>
+			<article class="stat-card">
+				<span>Produtos semente</span>
+				<strong>@totalProdutos</strong>
+			</article>
+			<article class="stat-card">
+				<span>Adicionais</span>
+				<strong>@totalAdicionais</strong>
+			</article>
+			<article class="stat-card">
+				<span>Status operacionais</span>
+				<strong>4</strong>
+			</article>
+		</section>
+
+		<section class="module-grid">
+			<article class="module-card">
+				<h2>App cliente PWA</h2>
+				<p>Navega cardapio, identifica cliente, monta pedido e acompanha status no browser.</p>
+			</article>
+			<article class="module-card">
+				<h2>Backend local ou hibrido</h2>
+				<p>Valida contexto, gera numero do pedido, coordena fila e propaga eventos em tempo real.</p>
+			</article>
+			<article class="module-card">
+				<h2>Painel interno</h2>
+				<p>Exibe fila de preparo e atualiza o andamento operacional com baixa friccao.</p>
+			</article>
+			<article class="module-card">
+				<h2>Painel publico</h2>
+				<p>Mostra pedidos prontos com leitura a distancia e sem excesso de informacao.</p>
+			</article>
+		</section>
+
+		<section class="section-card">
+			<h2>Decisoes tecnicas atuais</h2>
+			<ul class="bullet-list">
+				<li>A frente cliente deixou de ser instalavel e passou a ser um PWA compatível com Android e iPhone.</li>
+				<li>O dominio ja separa catalogo e pedidos sem forcar microsservicos cedo demais.</li>
+				<li>O requisito de rede local sera tratado como regra de infraestrutura, nao de UI.</li>
+				<li>O painel existe como limite arquitetural da V1 mesmo antes da implementacao completa.</li>
+			</ul>
+		</section>
+
+		<section class="section-card">
+			<div class="section-heading-row">
+				<div>
+					<div class="eyebrow">Catalogo semente</div>
+					<h2>Primeiro recorte de dominio</h2>
+				</div>
+				<a class="action-link" href="catalogo">Abrir catalogo</a>
+			</div>
+			<div class="catalog-grid">
+				@foreach (var categoria in categorias)
+				{
+					<article class="category-card">
+						<div class="category-card__head">
+							<h3>@categoria.Nome</h3>
+							<span>@categoria.Produtos.Count item(ns)</span>
+						</div>
+						<div class="product-list">
+							@foreach (var produto in categoria.Produtos)
+							{
+								<div class="product-card product-card--compact">
+									<strong>@produto.Nome</strong>
+									<span>@FormatMoney(produto.PrecoBase)</span>
+								</div>
+							}
+						</div>
+					</article>
+				}
+			</div>
+		</section>
+	</div>
+}
+
+@code {
+	private static readonly CultureInfo Culture = CultureInfo.GetCultureInfo("pt-BR");
+	private IReadOnlyList<CategoriaCardapio> categorias = [];
+	private bool isLoading = true;
+	private int totalProdutos;
+	private int totalAdicionais;
+
+	protected override async Task OnInitializedAsync()
+	{
+		categorias = await CatalogoService.ListarCategoriasAsync();
+		totalProdutos = categorias.Sum(categoria => categoria.Produtos.Count);
+		totalAdicionais = categorias.Sum(categoria => categoria.Produtos.Sum(produto => produto.Adicionais.Count));
+		isLoading = false;
+	}
+
+	private static string FormatMoney(decimal value) => value.ToString("C", Culture);
+}
