@@ -1,9 +1,7 @@
-name: Development Prerelease
+name: Development Prerelease Manual
 
 on:
-  push:
-    branches:
-      - development
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -46,4 +44,14 @@ jobs:
       - name: Create prerelease
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create ${{ steps.next-tag.outputs.value }} --target development --prerelease --title "comandaai ${{ steps.next-tag.outputs.value }}" --generate-notes
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.next-tag.outputs.value }}"
+          $existing = gh release view $tag --json tagName --jq '.tagName' 2>$null
+
+          if (-not [string]::IsNullOrWhiteSpace($existing)) {
+            Write-Host "Prerelease $tag ja existe."
+            exit 0
+          }
+
+          gh release create $tag --target development --prerelease --title "Prerelease $tag" --generate-notes

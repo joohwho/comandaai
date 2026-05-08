@@ -48,8 +48,8 @@ Com base nos repositorios `qa-test-pilot` e `inovar-colors-orcamento`, o `comand
 - qualquer commit deve disparar pipeline de build
 - ao abrir pull request, o build deve rodar novamente
 - o termo exato `final branch commit` marca o commit final de um round
-- quando esse termo aparecer fora de `main` e `development`, a pipeline do round executa build, executa teste quando houver projeto de teste, abre pull request para `development` e habilita auto-merge
-- cada merge em `development` gera automaticamente uma prerelease incremental no formato `0.0.1`, `0.0.2`, `0.0.3` e assim por diante
+- quando esse termo aparecer fora de `main` e `development`, a pipeline do round executa build, executa teste quando houver projeto de teste, abre pull request para `development`, habilita auto-merge, confirma o merge e publica a prerelease sequencial
+- a prerelease automatica deve usar titulo enxuto no formato `Prerelease 0.0.x`
 
 ## Direcao tecnica inicial
 
@@ -85,6 +85,7 @@ Partindo da stack de referencia, o projeto nasce com estas decisoes iniciais:
 - o preview de pedido passou a nascer da camada `Application`, em vez de montagem manual na pagina
 - o carrinho passou a persistir em `localStorage`, preservando a selecao ao recarregar a aplicacao
 - a cobertura de testes foi expandida para servicos de carrinho e montagem de pedido
+- a primeira prerelease `0.0.1` foi publicada apos o merge do round em `development`
 
 ## O que nao existe ainda nos projetos anteriores
 

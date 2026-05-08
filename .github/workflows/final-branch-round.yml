@@ -98,3 +98,66 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh pr merge ${{ steps.create-pr.outputs.number }} --auto --squash --delete-branch
+
+      - name: Wait for merge into development
+        id: wait-merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $number = "${{ steps.create-pr.outputs.number }}"
+
+          for ($attempt = 1; $attempt -le 60; $attempt++) {
+            $mergedAt = gh pr view $number --json mergedAt --jq '.mergedAt'
+
+            if (-not [string]::IsNullOrWhiteSpace($mergedAt) -and $mergedAt -ne 'null') {
+              "merged=true" >> $env:GITHUB_OUTPUT
+              exit 0
+            }
+
+            Start-Sleep -Seconds 10
+          }
+
+          Write-Error "A pull request do round nao foi mergeada em development dentro do tempo esperado."
+
+      - name: Calculate next prerelease tag
+        id: next-tag
+        if: steps.wait-merge.outputs.merged == 'true'
+        shell: pwsh
+        run: |
+          git fetch --tags --force
+
+          $tag = git tag --list | Where-Object { $_ -match '^\d+\.\d+\.\d+$' } |
+            ForEach-Object {
+              [PSCustomObject]@{
+                Raw = $_
+                Version = [Version]$_
+              }
+            } |
+            Sort-Object Version |
+            Select-Object -Last 1
+
+          if ($null -eq $tag) {
+            $next = '0.0.1'
+          }
+          else {
+            $next = '{0}.{1}.{2}' -f $tag.Version.Major, $tag.Version.Minor, ($tag.Version.Build + 1)
+          }
+
+          "value=$next" >> $env:GITHUB_OUTPUT
+
+      - name: Create prerelease after merge
+        if: steps.wait-merge.outputs.merged == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.next-tag.outputs.value }}"
+          $existing = gh release view $tag --json tagName --jq '.tagName' 2>$null
+
+          if (-not [string]::IsNullOrWhiteSpace($existing)) {
+            Write-Host "Prerelease $tag ja existe."
+            exit 0
+          }
+
+          gh release create $tag --target development --prerelease --title "Prerelease $tag" --generate-notes
