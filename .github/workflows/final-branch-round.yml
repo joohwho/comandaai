@@ -1,0 +1,100 @@
+name: Final Branch Round
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - development
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  finalize-round:
+    if: contains(github.event.head_commit.message, 'final branch commit')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore comandaai.slnx
+
+      - name: Build
+        run: dotnet build comandaai.slnx --configuration Release --no-restore
+
+      - name: Detect test projects
+        id: detect-tests
+        shell: pwsh
+        run: |
+          $projects = Get-ChildItem -Path . -Recurse -Filter *.csproj | Where-Object {
+            $content = Get-Content $_.FullName -Raw
+            $content -match '<IsTestProject>true</IsTestProject>' -or
+            $content -match 'Microsoft\.NET\.Test\.Sdk' -or
+            $_.Name -match 'Tests?\.csproj$'
+          }
+
+          if ($projects.Count -eq 0) {
+            "has_tests=false" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+
+          "has_tests=true" >> $env:GITHUB_OUTPUT
+          $joined = ($projects.FullName | ForEach-Object { $_.Replace($PWD.Path + [System.IO.Path]::DirectorySeparatorChar, '') }) -join "`n"
+          "project_list<<EOF" >> $env:GITHUB_OUTPUT
+          $joined >> $env:GITHUB_OUTPUT
+          "EOF" >> $env:GITHUB_OUTPUT
+
+      - name: Test
+        if: steps.detect-tests.outputs.has_tests == 'true'
+        shell: pwsh
+        run: |
+          $projects = @'
+          ${{ steps.detect-tests.outputs.project_list }}
+          '@ -split "`n" | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+
+          foreach ($project in $projects) {
+            dotnet test $project --configuration Release --no-build --logger "trx;LogFileName=$([System.IO.Path]::GetFileNameWithoutExtension($project)).trx"
+          }
+
+      - name: Create or reuse pull request to development
+        id: create-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: pwsh
+        run: |
+          $branch = "${{ github.ref_name }}"
+          $existingNumber = gh pr list --head $branch --base development --state open --json number --jq '.[0].number'
+
+          if (-not [string]::IsNullOrWhiteSpace($existingNumber)) {
+            "number=$existingNumber" >> $env:GITHUB_OUTPUT
+            exit 0
+          }
+
+          $title = "Round: $branch"
+          $body = @"
+          PR automatica criada apos detectar o marcador 'final branch commit'.
+
+          - origem: $branch
+          - destino: development
+          - build: OK
+          - teste: executado quando houver projeto de teste
+          "@
+
+          gh pr create --base development --head $branch --title $title --body $body
+          $number = gh pr list --head $branch --base development --state open --json number --jq '.[0].number'
+          "number=$number" >> $env:GITHUB_OUTPUT
+
+      - name: Enable auto-merge
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr merge ${{ steps.create-pr.outputs.number }} --auto --squash --delete-branch

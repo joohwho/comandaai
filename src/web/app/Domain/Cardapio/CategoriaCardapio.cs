@@ -1,8 +1,8 @@
 namespace ComandaAi.Web.Domain.Cardapio;
 
-public sealed record CategoriaCardapio(Guid Id, string Nome, int OrdemExibicao, IReadOnlyList<ProdutoCardapio> Produtos)
+public sealed record CategoriaCardapio
 {
-	public CategoriaCardapio(Guid id, string nome, int ordemExibicao, IReadOnlyList<ProdutoCardapio>? produtos = null) : this()
+	public CategoriaCardapio(Guid id, string nome, int ordemExibicao, IReadOnlyList<ProdutoCardapio>? produtos = null)
 	{
 		if (id == Guid.Empty)
 		{
@@ -24,4 +24,12 @@ public sealed record CategoriaCardapio(Guid Id, string Nome, int OrdemExibicao, 
 		OrdemExibicao = ordemExibicao;
 		Produtos = produtos ?? [];
 	}
+
+	public Guid Id { get; }
+
+	public string Nome { get; }
+
+	public int OrdemExibicao { get; }
+
+	public IReadOnlyList<ProdutoCardapio> Produtos { get; }
 }

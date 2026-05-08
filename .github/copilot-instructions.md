@@ -14,6 +14,15 @@ Direcao atual do produto:
 - operacao conectada ao ambiente local do estabelecimento
 - painel interno e painel publico como partes do mesmo ecossistema
 
+## Fluxo de entrega e governanca de branches
+
+- O trabalho passa a acontecer por rounds, com uma nova branch a cada round.
+- `main` e `development` devem permanecer protegidas e sem commit direto.
+- Merge em `main` e `development` deve acontecer apenas via pull request.
+- O termo `final branch commit` identifica o commit final de uma round branch.
+- Ao encontrar `final branch commit`, a automacao deve considerar build obrigatorio, teste quando houver projeto de teste, criacao automatica de pull request para `development` e auto-merge.
+- Cada merge em `development` deve gerar prerelease sequencial no formato `0.0.x`.
+
 ## Qualidade de codigo
 
 - Aplicar Clean Code, SOLID e POO com foco pragmatico.
@@ -64,6 +73,6 @@ Direcao atual do produto:
 
 - Preferir mudancas pequenas e validaveis.
 - Antes de adicionar bibliotecas, confirmar que a plataforma base nao resolve o problema de forma mais simples.
-- Enquanto os pipelines ainda nao estiverem configurados, nao exigir build nem testes locais por padrao.
-- Nesse periodo inicial, validar por consistencia estrutural, coerencia arquitetural, leitura de codigo e criterios objetivos que nao dependam de execucao local.
+- Enquanto a suite de testes ainda estiver inicial, aceitar pipeline com etapa de teste condicional para os casos em que ainda nao houver cobertura no modulo tocado.
+- Nessa fase, validacao local continua podendo usar consistencia estrutural, coerencia arquitetural, leitura de codigo e criterios objetivos que nao dependam de execucao local.
 - Nao introduzir backend framework, banco definitivo, autenticacao ou pagamento sem decisao explicita.

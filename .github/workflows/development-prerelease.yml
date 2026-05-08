@@ -1,0 +1,49 @@
+name: Development Prerelease
+
+on:
+  push:
+    branches:
+      - development
+
+permissions:
+  contents: write
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate next prerelease tag
+        id: next-tag
+        shell: pwsh
+        run: |
+          git fetch --tags --force
+
+          $tag = git tag --list | Where-Object { $_ -match '^\d+\.\d+\.\d+$' } |
+            ForEach-Object {
+              [PSCustomObject]@{
+                Raw = $_
+                Version = [Version]$_
+              }
+            } |
+            Sort-Object Version |
+            Select-Object -Last 1
+
+          if ($null -eq $tag) {
+            $next = '0.0.1'
+          }
+          else {
+            $next = '{0}.{1}.{2}' -f $tag.Version.Major, $tag.Version.Minor, ($tag.Version.Build + 1)
+          }
+
+          "value=$next" >> $env:GITHUB_OUTPUT
+
+      - name: Create prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create ${{ steps.next-tag.outputs.value }} --target development --prerelease --title "comandaai ${{ steps.next-tag.outputs.value }}" --generate-notes

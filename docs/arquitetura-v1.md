@@ -129,9 +129,18 @@ A V1 nao precisa nascer em microsservicos, mas o dominio deve permitir separacao
 
 Essa separacao deve acontecer por contratos e limites claros, nao por distribuicao prematura.
 
+## Fluxo de entrega automatizado
+
+- cada round deve nascer em uma branch nova
+- `main` e `development` ficam protegidas contra commit direto e aceitam mudancas apenas por pull request
+- todo push e toda abertura de pull request disparam a pipeline `Build`
+- o termo `final branch commit` fecha uma round branch e dispara build, teste quando houver projeto de teste, criacao automatica de pull request para `development` e auto-merge
+- cada merge em `development` gera uma prerelease sequencial no formato `0.0.1`, `0.0.2`, `0.0.3` e assim por diante
+
 ## Estado atual do repositorio
 
 - app web PWA inicial criado em `src/web/app`
 - versao de trabalho inicial definida como `0.0.1`
-- validacao local sem build e sem testes por enquanto
-- configuracao futura de pipeline prevista para build, testes e publicacao
+- validacao local ainda pode continuar sem build e sem testes obrigatorios
+- pipelines configuradas para build em push e PR, round final automatizada e prerelease apos merge em `development`
+- primeiro projeto de testes criado em `tests/ComandaAi.Web.Tests` com foco inicial no dominio
