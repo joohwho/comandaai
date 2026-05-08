@@ -36,6 +36,7 @@ Com base nos repositorios `qa-test-pilot` e `inovar-colors-orcamento`, o `comand
 - scaffold web PWA inicial em `src/web/app`
 - solucao principal em `comandaai.slnx`
 - primeiro projeto de testes em `tests/ComandaAi.Web.Tests`
+- camada `Application` ja cobre consulta de catalogo, montagem de pedido e carrinho local persistido no navegador
 - agente customizado do projeto em `.github/agents/Commander.agent.md`
 - documentacao de arquitetura da V1 em `docs/arquitetura-v1.md`
 - pipelines em `.github/workflows`
@@ -75,6 +76,15 @@ Partindo da stack de referencia, o projeto nasce com estas decisoes iniciais:
 - pipelines de build, round final e prerelease foram configuradas
 - `main` e `development` ficaram protegidas para fluxo via pull request
 - a suite inicial de testes xUnit foi criada para ativar a etapa de `test` quando houver `final branch commit`
+
+## Estado do round 2
+
+- round 2 consolidou o primeiro fluxo cliente de pedido dentro da PWA
+- o catalogo agora permite montar itens com observacoes e adicionais
+- o carrinho local foi introduzido como estado do cliente com identidade por linha personalizada
+- o preview de pedido passou a nascer da camada `Application`, em vez de montagem manual na pagina
+- o carrinho passou a persistir em `localStorage`, preservando a selecao ao recarregar a aplicacao
+- a cobertura de testes foi expandida para servicos de carrinho e montagem de pedido
 
 ## O que nao existe ainda nos projetos anteriores
 
@@ -141,12 +151,12 @@ Esses pontos devem ser tratados como arquitetura nova do `comandaai`, mesmo com 
 - composicao do painel interno e do painel publico
 - login interno da equipe
 - estrategia de cadastro e edicao do cardapio
-- estrategia de cache offline parcial no PWA
+- estrategia de cache offline parcial no PWA alem da persistencia local do carrinho
 
 ## Proximos passos recomendados
 
 1. Definir a arquitetura do backend local/hibrido e do realtime.
-2. Estruturar modulos iniciais do app cliente e dos paineis.
-3. Modelar entidades principais: categoria, produto, adicional, pedido, item do pedido, status e mesa/comanda.
-4. Decidir como o painel interno sera entregue na V1.
-5. Expandir a cobertura de testes para services e fluxo de pedido completo.
+2. Estruturar o contrato de envio do pedido do cliente para o backend local/hibrido.
+3. Decidir como o painel interno sera entregue na V1.
+4. Conectar a fila operacional a uma fonte realtime real.
+5. Expandir a cobertura de testes para persistencia local e fluxos integrados entre UI e Application.

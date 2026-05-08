@@ -1,5 +1,8 @@
 @page "/pedidos"
 @using System.Globalization
+@inject ICarrinhoPedidoService CarrinhoPedidoService
+@inject IMontagemPedidoService MontagemPedidoService
+@implements IDisposable
 
 <PageTitle>comandaai | Pedidos</PageTitle>
 
@@ -7,71 +10,167 @@
 	<section class="page-header-card">
 		<div>
 			<div class="eyebrow">Pedidos</div>
-			<h1>Aggregate inicial do fluxo de pedido</h1>
-			<p class="muted-text">O dominio ja controla itens, total e transicoes de status do pedido.</p>
+			<h1>Montagem interativa do pedido</h1>
+			<p class="muted-text">O pedido agora nasce do carrinho local e dos dados operacionais informados no cliente.</p>
 		</div>
 	</section>
 
-	<section class="section-card">
-		<div class="order-summary-head">
+	<section class="section-card form-card">
+		<div class="section-heading-row">
 			<div>
-				<h2>Pedido @pedido.NumeroExibicao</h2>
-				<p class="muted-text">Cliente: @pedido.Cliente.NomeExibicao</p>
+				<h2>Dados do atendimento</h2>
+				<p class="muted-text">Esse estado permanece no cliente enquanto o backend ainda nao foi introduzido.</p>
 			</div>
-			<span class="status-chip status-chip--info">@pedido.Status</span>
+			<button class="action-button action-button--ghost" @onclick="GerarPreviewPedido">Atualizar preview</button>
 		</div>
 
-		<div class="stats-grid">
-			<article class="stat-card">
+		<div class="form-grid">
+			<label>
+				<span>Nome ou apelido</span>
+				<input class="field-input" @bind="nomeCliente" />
+			</label>
+			<label>
 				<span>Mesa</span>
-				<strong>@pedido.ReferenciaAtendimento.Mesa</strong>
-			</article>
-			<article class="stat-card">
+				<input class="field-input" @bind="mesa" />
+			</label>
+			<label>
 				<span>Comanda</span>
-				<strong>@pedido.ReferenciaAtendimento.Comanda</strong>
-			</article>
-			<article class="stat-card">
-				<span>Itens</span>
-				<strong>@pedido.Itens.Count</strong>
-			</article>
-			<article class="stat-card">
-				<span>Total</span>
-				<strong>@FormatMoney(pedido.Total)</strong>
-			</article>
+				<input class="field-input" @bind="comanda" />
+			</label>
 		</div>
 	</section>
 
 	<section class="section-card">
-		<h2>Itens do pedido</h2>
-		<div class="product-list">
-			@foreach (var item in pedido.Itens)
+		<div class="section-heading-row">
+			<div>
+				<h2>Carrinho local</h2>
+				<p class="muted-text">Selecao corrente do cliente antes do envio real.</p>
+			</div>
+			@if (CarrinhoPedidoService.Itens.Count > 0)
 			{
-				<article class="product-card">
-					<div class="product-card__top">
-						<div>
-							<h3>@item.NomeProduto</h3>
-							<p>@(item.Observacao ?? "Sem observacoes.")</p>
-						</div>
-						<strong>@FormatMoney(item.Total)</strong>
-					</div>
-					<div class="tag-row">
-						<span class="tag">Qtd. @item.Quantidade</span>
-						<span class="tag">Base @FormatMoney(item.PrecoUnitario)</span>
-					</div>
-
-					@if (item.Adicionais.Count > 0)
-					{
-						<div class="chip-row">
-							@foreach (var adicional in item.Adicionais)
-							{
-								<span class="chip">@adicional.Nome x@adicional.Quantidade</span>
-							}
-						</div>
-					}
-				</article>
+				<button class="action-button action-button--ghost" @onclick="LimparCarrinho">Limpar</button>
 			}
 		</div>
+
+		@if (CarrinhoPedidoService.Itens.Count == 0)
+		{
+			<p class="muted-text">Nenhum item no carrinho ainda. Volte ao catalogo para adicionar produtos.</p>
+		}
+		else
+		{
+			<div class="product-list">
+				@foreach (var item in CarrinhoPedidoService.Itens)
+				{
+					<article class="product-card">
+						<div class="product-card__top">
+							<div>
+								<h3>@item.NomeProduto</h3>
+								<p>@(item.Observacao ?? $"{item.Quantidade} unidade(s) selecionada(s)")</p>
+							</div>
+							<strong>@FormatMoney(item.Total)</strong>
+						</div>
+						@if (item.Adicionais.Count > 0)
+						{
+							<div class="chip-row">
+								@foreach (var adicional in item.Adicionais)
+								{
+									<span class="chip">@adicional.Nome x@adicional.Quantidade</span>
+								}
+							</div>
+						}
+						<div class="product-card__actions">
+							<div class="tag-row">
+								<span class="tag">Qtd. @item.Quantidade</span>
+								<span class="tag">Base @FormatMoney(item.PrecoUnitario)</span>
+								@if (item.TemPersonalizacao)
+								{
+									<span class="tag">Personalizado</span>
+								}
+							</div>
+							<div class="inline-actions">
+								<button class="action-button action-button--ghost" @onclick="() => DecrementarItem(item.ItemId)">Remover 1</button>
+								<button class="action-button" @onclick="() => IncrementarItem(item.ItemId)">Adicionar 1</button>
+								@if (item.TemPersonalizacao)
+								{
+									<button class="action-button action-button--ghost" @onclick="() => RemoverItem(item.ItemId)">Excluir linha</button>
+								}
+							</div>
+						</div>
+					</article>
+				}
+			</div>
+		}
 	</section>
+
+	@if (pedido is null)
+	{
+		<section class="section-card">
+			<p class="muted-text">Adicione itens ao carrinho e atualize o preview do pedido.</p>
+		</section>
+	}
+	else
+	{
+		<section class="section-card">
+			<div class="order-summary-head">
+				<div>
+					<h2>Pedido @pedido.NumeroExibicao</h2>
+					<p class="muted-text">Cliente: @pedido.Cliente.NomeExibicao</p>
+				</div>
+				<span class="status-chip status-chip--info">@pedido.Status</span>
+			</div>
+
+			<div class="stats-grid">
+				<article class="stat-card">
+					<span>Mesa</span>
+					<strong>@pedido.ReferenciaAtendimento.Mesa</strong>
+				</article>
+				<article class="stat-card">
+					<span>Comanda</span>
+					<strong>@pedido.ReferenciaAtendimento.Comanda</strong>
+				</article>
+				<article class="stat-card">
+					<span>Itens</span>
+					<strong>@pedido.Itens.Count</strong>
+				</article>
+				<article class="stat-card">
+					<span>Total</span>
+					<strong>@FormatMoney(pedido.Total)</strong>
+				</article>
+			</div>
+		</section>
+
+		<section class="section-card">
+			<h2>Itens do pedido</h2>
+			<div class="product-list">
+				@foreach (var item in pedido.Itens)
+				{
+					<article class="product-card">
+						<div class="product-card__top">
+							<div>
+								<h3>@item.NomeProduto</h3>
+								<p>@(item.Observacao ?? "Sem observacoes.")</p>
+							</div>
+							<strong>@FormatMoney(item.Total)</strong>
+						</div>
+						<div class="tag-row">
+							<span class="tag">Qtd. @item.Quantidade</span>
+							<span class="tag">Base @FormatMoney(item.PrecoUnitario)</span>
+						</div>
+
+						@if (item.Adicionais.Count > 0)
+						{
+							<div class="chip-row">
+								@foreach (var adicional in item.Adicionais)
+								{
+									<span class="chip">@adicional.Nome x@adicional.Quantidade</span>
+								}
+							</div>
+						}
+					</article>
+				}
+			</div>
+		</section>
+	}
 
 	<section class="section-card">
 		<h2>Transicoes permitidas na V1</h2>
@@ -86,34 +185,86 @@
 
 @code {
 	private static readonly CultureInfo Culture = CultureInfo.GetCultureInfo("pt-BR");
-	private Pedido pedido = default!;
+	private Pedido? pedido;
+	private string nomeCliente = "Ana - Mesa 08";
+	private string mesa = "08";
+	private string comanda = "C-14";
 
-	protected override void OnInitialized()
+	protected override async Task OnInitializedAsync()
 	{
-		pedido = new Pedido(
+		CarrinhoPedidoService.Changed += OnCarrinhoChanged;
+		PopularCarrinhoInicialSeNecessario();
+		await GerarPreviewPedido();
+	}
+
+	private void PopularCarrinhoInicialSeNecessario()
+	{
+		if (CarrinhoPedidoService.Itens.Count > 0)
+		{
+			return;
+		}
+
+		CarrinhoPedidoService.AdicionarProduto(Guid.Parse("7D8D8F5D-6080-4E4C-A0FB-6F6AFA8E0E11"), "Negroni da Casa", 34.90m);
+		CarrinhoPedidoService.AdicionarProduto(Guid.Parse("7D8D8F5D-6080-4E4C-A0FB-6F6AFA8E0E13"), "Batata rustica", 24.90m);
+	}
+
+	private async Task GerarPreviewPedido()
+	{
+		if (CarrinhoPedidoService.Itens.Count == 0)
+		{
+			pedido = null;
+			return;
+		}
+
+		pedido = await MontagemPedidoService.MontarAsync(new MontagemPedidoEntrada(
 			"A-102",
-			new IdentificacaoCliente("Ana - Mesa 08"),
-			new ReferenciaAtendimento("08", "C-14", "mesa-08"));
-
-		pedido.AdicionarItem(new ItemPedido(
-			Guid.Parse("6B9F377E-BE67-4A41-A4A7-6E51D6882011"),
-			"Negroni da Casa",
-			34.90m,
-			1,
-			"Pouco gelo",
-			[
-				new ItemPedidoAdicional(Guid.Parse("6B9F377E-BE67-4A41-A4A7-6E51D6882021"), "Dose extra de gin", 8.00m, 1)
-			]));
-
-		pedido.AdicionarItem(new ItemPedido(
-			Guid.Parse("6B9F377E-BE67-4A41-A4A7-6E51D6882012"),
-			"Batata rustica",
-			24.90m,
-			1,
-			null,
-			[]));
+			nomeCliente,
+			mesa,
+			comanda,
+			"mesa-08",
+			CarrinhoPedidoService.Itens
+				.Select(item => new MontagemPedidoItemEntrada(
+					item.ProdutoId,
+					item.Quantidade,
+					item.Observacao,
+					item.Adicionais.Select(adicional => new MontagemPedidoAdicionalEntrada(adicional.AdicionalId, adicional.Quantidade)).ToList()))
+				.ToList()));
 
 		pedido.AtualizarStatus(PedidoStatus.EmPreparo);
+	}
+
+	private void IncrementarItem(Guid itemId)
+	{
+		CarrinhoPedidoService.IncrementarQuantidade(itemId);
+	}
+
+	private void DecrementarItem(Guid itemId)
+	{
+		CarrinhoPedidoService.DecrementarQuantidade(itemId);
+	}
+
+	private void RemoverItem(Guid itemId)
+	{
+		CarrinhoPedidoService.RemoverItem(itemId);
+	}
+
+	private void LimparCarrinho()
+	{
+		CarrinhoPedidoService.Limpar();
+	}
+
+	private void OnCarrinhoChanged()
+	{
+		_ = InvokeAsync(async () =>
+		{
+			await GerarPreviewPedido();
+			StateHasChanged();
+		});
+	}
+
+	public void Dispose()
+	{
+		CarrinhoPedidoService.Changed -= OnCarrinhoChanged;
 	}
 
 	private static string FormatMoney(decimal value) => value.ToString("C", Culture);
