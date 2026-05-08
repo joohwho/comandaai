@@ -4,4 +4,8 @@
   <Folder Name="/src/web/app/">
     <Project Path="src/web/app/ComandaAi.Web.csproj" />
   </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/ComandaAi.Web.Tests/">
+    <Project Path="tests/ComandaAi.Web.Tests/ComandaAi.Web.Tests.csproj" />
+  </Folder>
 </Solution>

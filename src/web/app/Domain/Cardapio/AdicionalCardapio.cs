@@ -1,8 +1,9 @@
 namespace ComandaAi.Web.Domain.Cardapio;
 
-public sealed record AdicionalCardapio(Guid Id, string Nome, decimal Preco, int QuantidadeMaximaPorItem, bool Obrigatorio)
+public sealed record AdicionalCardapio
+
 {
-	public AdicionalCardapio(Guid id, string nome, decimal preco, int quantidadeMaximaPorItem, bool obrigatorio = false) : this()
+	public AdicionalCardapio(Guid id, string nome, decimal preco, int quantidadeMaximaPorItem, bool obrigatorio = false)
 	{
 		if (id == Guid.Empty)
 		{
@@ -30,4 +31,14 @@ public sealed record AdicionalCardapio(Guid Id, string Nome, decimal Preco, int 
 		QuantidadeMaximaPorItem = quantidadeMaximaPorItem;
 		Obrigatorio = obrigatorio;
 	}
+
+	public Guid Id { get; }
+
+	public string Nome { get; }
+
+	public decimal Preco { get; }
+
+	public int QuantidadeMaximaPorItem { get; }
+
+	public bool Obrigatorio { get; }
 }

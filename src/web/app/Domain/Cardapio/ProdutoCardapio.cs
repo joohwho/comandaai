@@ -1,15 +1,8 @@
 namespace ComandaAi.Web.Domain.Cardapio;
 
-public sealed record ProdutoCardapio(
-	Guid Id,
-	string Nome,
-	string Descricao,
-	decimal PrecoBase,
-	ProdutoCardapioTipo Tipo,
-	bool Ativo,
-	IReadOnlyList<AdicionalCardapio> Adicionais)
+public sealed record ProdutoCardapio
 {
-	public ProdutoCardapio(Guid id, string nome, string descricao, decimal precoBase, ProdutoCardapioTipo tipo, bool ativo, IReadOnlyList<AdicionalCardapio>? adicionais = null) : this()
+	public ProdutoCardapio(Guid id, string nome, string descricao, decimal precoBase, ProdutoCardapioTipo tipo, bool ativo, IReadOnlyList<AdicionalCardapio>? adicionais = null)
 	{
 		if (id == Guid.Empty)
 		{
@@ -34,4 +27,18 @@ public sealed record ProdutoCardapio(
 		Ativo = ativo;
 		Adicionais = adicionais ?? [];
 	}
+
+	public Guid Id { get; }
+
+	public string Nome { get; }
+
+	public string Descricao { get; }
+
+	public decimal PrecoBase { get; }
+
+	public ProdutoCardapioTipo Tipo { get; }
+
+	public bool Ativo { get; }
+
+	public IReadOnlyList<AdicionalCardapio> Adicionais { get; }
 }

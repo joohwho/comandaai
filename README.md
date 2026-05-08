@@ -35,8 +35,20 @@ Com base nos repositorios `qa-test-pilot` e `inovar-colors-orcamento`, o `comand
 - versao de trabalho inicial: `0.0.1`
 - scaffold web PWA inicial em `src/web/app`
 - solucao principal em `comandaai.slnx`
+- primeiro projeto de testes em `tests/ComandaAi.Web.Tests`
 - agente customizado do projeto em `.github/agents/Commander.agent.md`
 - documentacao de arquitetura da V1 em `docs/arquitetura-v1.md`
+- pipelines em `.github/workflows`
+
+## Fluxo de branches e rounds
+
+- cada round de trabalho deve acontecer em uma branch nova
+- `main` e `development` passam a ser branches protegidas, sem commit direto, com merge somente via pull request
+- qualquer commit deve disparar pipeline de build
+- ao abrir pull request, o build deve rodar novamente
+- o termo exato `final branch commit` marca o commit final de um round
+- quando esse termo aparecer fora de `main` e `development`, a pipeline do round executa build, executa teste quando houver projeto de teste, abre pull request para `development` e habilita auto-merge
+- cada merge em `development` gera automaticamente uma prerelease incremental no formato `0.0.1`, `0.0.2`, `0.0.3` e assim por diante
 
 ## Direcao tecnica inicial
 
@@ -56,6 +68,13 @@ Partindo da stack de referencia, o projeto nasce com estas decisoes iniciais:
 - uso consistente de injecao de dependencia
 - modelagem em C# .NET com foco em contratos claros
 - padrao de testes unitarios para regras e servicos desacoplados da plataforma
+
+## Estado do round 1
+
+- round 1 consolidou a migracao para PWA
+- pipelines de build, round final e prerelease foram configuradas
+- `main` e `development` ficaram protegidas para fluxo via pull request
+- a suite inicial de testes xUnit foi criada para ativar a etapa de `test` quando houver `final branch commit`
 
 ## O que nao existe ainda nos projetos anteriores
 
@@ -130,4 +149,4 @@ Esses pontos devem ser tratados como arquitetura nova do `comandaai`, mesmo com 
 2. Estruturar modulos iniciais do app cliente e dos paineis.
 3. Modelar entidades principais: categoria, produto, adicional, pedido, item do pedido, status e mesa/comanda.
 4. Decidir como o painel interno sera entregue na V1.
-5. Evoluir o scaffold tecnico do projeto em Blazor WebAssembly com PWA.
+5. Expandir a cobertura de testes para services e fluxo de pedido completo.
