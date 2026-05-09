@@ -1,6 +1,7 @@
 @page "/pedidos"
 @using System.Globalization
 @inject ICarrinhoPedidoService CarrinhoPedidoService
+@inject IEnvioPedidoService EnvioPedidoService
 @inject IMontagemPedidoService MontagemPedidoService
 @implements IDisposable
 
@@ -21,7 +22,10 @@
 				<h2>Dados do atendimento</h2>
 				<p class="muted-text">Esse estado permanece no cliente enquanto o backend ainda nao foi introduzido.</p>
 			</div>
-			<button class="action-button action-button--ghost" @onclick="GerarPreviewPedido">Atualizar preview</button>
+			<div class="inline-actions">
+				<button class="action-button action-button--ghost" @onclick="GerarPreviewPedido">Atualizar preview</button>
+				<button class="action-button" @onclick="EnviarPedidoAsync" disabled="@(pedido is null || isEnviando)">@(isEnviando ? "Enviando..." : "Enviar pedido")</button>
+			</div>
 		</div>
 
 		<div class="form-grid">
@@ -101,6 +105,39 @@
 			</div>
 		}
 	</section>
+
+	@if (resultadoEnvio is not null && pedidoConfirmado is not null)
+	{
+		<section class="section-card confirmation-card">
+			<div class="section-heading-row">
+				<div>
+					<div class="eyebrow">Pedido enviado</div>
+					<h2>@resultadoEnvio.NumeroPedido confirmado para a fila local</h2>
+					<p class="muted-text">@resultadoEnvio.Mensagem</p>
+				</div>
+				<span class="status-chip status-chip--success">@resultadoEnvio.Status</span>
+			</div>
+
+			<div class="stats-grid">
+				<article class="stat-card">
+					<span>Protocolo</span>
+					<strong>@resultadoEnvio.ProtocoloOperacional</strong>
+				</article>
+				<article class="stat-card">
+					<span>Recebido em</span>
+					<strong>@resultadoEnvio.RecebidoEmUtc.ToLocalTime().ToString("HH:mm")</strong>
+				</article>
+				<article class="stat-card">
+					<span>Cliente</span>
+					<strong>@pedidoConfirmado.Cliente.NomeExibicao</strong>
+				</article>
+				<article class="stat-card">
+					<span>Total</span>
+					<strong>@FormatMoney(pedidoConfirmado.Total)</strong>
+				</article>
+			</div>
+		</section>
+	}
 
 	@if (pedido is null)
 	{
@@ -186,6 +223,9 @@
 @code {
 	private static readonly CultureInfo Culture = CultureInfo.GetCultureInfo("pt-BR");
 	private Pedido? pedido;
+	private Pedido? pedidoConfirmado;
+	private EnvioPedidoResultado? resultadoEnvio;
+	private bool isEnviando;
 	private string nomeCliente = "Ana - Mesa 08";
 	private string mesa = "08";
 	private string comanda = "C-14";
@@ -213,8 +253,15 @@
 		if (CarrinhoPedidoService.Itens.Count == 0)
 		{
 			pedido = null;
+			if (resultadoEnvio is null)
+			{
+				pedidoConfirmado = null;
+			}
 			return;
 		}
+
+		resultadoEnvio = null;
+		pedidoConfirmado = null;
 
 		pedido = await MontagemPedidoService.MontarAsync(new MontagemPedidoEntrada(
 			"A-102",
@@ -231,6 +278,29 @@
 				.ToList()));
 
 		pedido.AtualizarStatus(PedidoStatus.EmPreparo);
+	}
+
+	private async Task EnviarPedidoAsync()
+	{
+		if (pedido is null || isEnviando)
+		{
+			return;
+		}
+
+		isEnviando = true;
+
+		try
+		{
+			var pedidoParaEnvio = pedido;
+			resultadoEnvio = await EnvioPedidoService.EnviarAsync(pedidoParaEnvio);
+			pedidoConfirmado = pedidoParaEnvio;
+			pedido = null;
+			CarrinhoPedidoService.Limpar();
+		}
+		finally
+		{
+			isEnviando = false;
+		}
 	}
 
 	private void IncrementarItem(Guid itemId)

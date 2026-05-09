@@ -54,6 +54,7 @@ Responsabilidades:
 Diretriz:
 
 - essa camada deve nascer separada do app cliente PWA, mesmo que a primeira versao seja simples ou hospedada localmente
+- no estado atual do repositorio, o envio ainda usa um gateway local simulado na camada `Application`, preservando o contrato para futura troca por integracao real
 
 ### 3. Painel Interno Operacional
 
@@ -148,3 +149,4 @@ Essa separacao deve acontecer por contratos e limites claros, nao por distribuic
 - a publicacao de prerelease foi acoplada ao fechamento automatizado do round para evitar lacuna causada pelo merge executado por workflow
 - primeiro projeto de testes criado em `tests/ComandaAi.Web.Tests` com foco em dominio e camada `Application`
 - round 2 consolidou carrinho customizavel com persistencia local no navegador e preview de pedido montado pela camada `Application`
+- round 4 consolidou o contrato de envio do pedido com gateway local simulado e confirmacao operacional na UI

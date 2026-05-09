@@ -136,6 +136,12 @@ small {
     color: #d6efff;
 }
 
+.status-chip--success {
+    background: rgba(88, 196, 140, 0.14);
+    border-color: rgba(88, 196, 140, 0.24);
+    color: #dcffee;
+}
+
 .stats-grid,
 .module-grid,
 .catalog-grid,

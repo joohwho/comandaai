@@ -87,6 +87,14 @@ Partindo da stack de referencia, o projeto nasce com estas decisoes iniciais:
 - a cobertura de testes foi expandida para servicos de carrinho e montagem de pedido
 - a primeira prerelease `0.0.1` foi publicada apos o merge do round em `development`
 
+## Estado do round 4
+
+- round 4 abriu o contrato de envio do pedido do cliente para o backend local ou hibrido
+- a camada `Application` agora expoe um servico explicito de envio de pedido
+- a implementacao atual usa um gateway local simulado para representar o recebimento operacional sem acoplar a UI ao backend definitivo
+- a pagina de pedidos passou a permitir envio explicito e retorno de confirmacao operacional
+- a cobertura de testes foi expandida para o servico de envio de pedido
+
 ## O que nao existe ainda nos projetos anteriores
 
 - painel de pedidos em tempo real multiusuario
@@ -157,7 +165,7 @@ Esses pontos devem ser tratados como arquitetura nova do `comandaai`, mesmo com 
 ## Proximos passos recomendados
 
 1. Definir a arquitetura do backend local/hibrido e do realtime.
-2. Estruturar o contrato de envio do pedido do cliente para o backend local/hibrido.
+2. Substituir o gateway local simulado por um contrato HTTP ou realtime real para envio do pedido.
 3. Decidir como o painel interno sera entregue na V1.
 4. Conectar a fila operacional a uma fonte realtime real.
-5. Expandir a cobertura de testes para persistencia local e fluxos integrados entre UI e Application.
+5. Expandir a cobertura de testes para persistencia local e fluxos integrados entre UI, Application e integracoes.
